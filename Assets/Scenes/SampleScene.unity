@@ -1207,6 +1207,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioClipTakeOutWeapon: {fileID: 8300000, guid: 2ae41e984ff1f3e4a840a1a46b6a8816, type: 3}
+  weaponSetting:
+    attackRate: 0.1
+    attackDistance: 3
+    isAutomaticAttack: 1
 --- !u!4 &1854697756 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3759864545770656747, guid: 8e411a1a5ccb13c4c873c2f885094081, type: 3}
