@@ -14,6 +14,8 @@ public enum WeaponName
 public struct WeaponSetting
 {
     public WeaponName weaponName;     //무기 이름
+    public int currentMagazine;       //현재 탄창 수
+    public int mazMagazine;           //최대 탄창 수
     public int currentAmmo;           //현재 탄약 수
     public int maxAmmo;               //최대 탄약 수
     public float attackRate;          //공격 속도

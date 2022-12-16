@@ -6,10 +6,15 @@ using UnityEngine.Events;
 [System.Serializable]
 public class AmmoEvent : UnityEvent<int, int> { }
 
+[System.Serializable]
+public class MagazineEvent : UnityEvent<int> { }
+
 public class WeaponAssaultRifle : MonoBehaviour
 {
     [HideInInspector]
     public AmmoEvent onAmmoEvent = new AmmoEvent();
+    [HideInInspector]
+    public MagazineEvent onMagazineEvent = new MagazineEvent();
 
     [Header("Fire Effects")]
     [SerializeField]
@@ -40,6 +45,8 @@ public class WeaponAssaultRifle : MonoBehaviour
 
     //외부에서 필요한 정보를 열람하기 위해 정의한 Get Property's
     public WeaponName WeaponName => weaponSetting.weaponName;
+    public int CurrentMagazine => weaponSetting.currentMagazine;
+    public int MaxMagazine => weaponSetting.mazMagazine;
 
     private void Awake()
     {
@@ -47,6 +54,8 @@ public class WeaponAssaultRifle : MonoBehaviour
         animator = GetComponentInParent<PlayerAnimatorController>();
         casingMemoryPool = GetComponent<CasingMemoryPool>();
 
+        //처음 탄창 수는 최대로 설정
+        weaponSetting.currentMagazine = weaponSetting.mazMagazine;
         //처음 탄 수는 최대로 설정
         weaponSetting.currentAmmo = weaponSetting.maxAmmo;
     }
@@ -59,6 +68,8 @@ public class WeaponAssaultRifle : MonoBehaviour
         //총구 이펙트 오브젝트 비활성화
         muzzleFlashEffect.SetActive(false);
 
+        //무기가 활성화될 때 해당 무기의 탄창 정보를 갱신한다.
+        onMagazineEvent.Invoke(weaponSetting.currentMagazine);
         //무기가 활성화될 때 해당 무기의 탄 수 정보를 갱신한다.
         onAmmoEvent.Invoke(weaponSetting.currentAmmo, weaponSetting.maxAmmo);
     }
@@ -97,7 +108,7 @@ public class WeaponAssaultRifle : MonoBehaviour
     public void StartReload()
     {
         //현재 재장전 중이면 재장전 불가능
-        if (isReload == true)
+        if (isReload == true || weaponSetting.currentAmmo == weaponSetting.maxAmmo || weaponSetting.currentMagazine <= 0)
             return;
 
         //무기 액션 도중에 'R'키를 눌러 재장전을 시도하면 무기 액션 종료 후 재장전
@@ -172,6 +183,10 @@ public class WeaponAssaultRifle : MonoBehaviour
             if(audioSource.isPlaying == false && animator.CurrentAnimationIs("Movement"))
             {
                 isReload = false;
+
+                //현재 탄창 수를 1 감소시키고, 바뀐 탄창 정보를 Text UI에 업데이트
+                weaponSetting.currentMagazine--;
+                onMagazineEvent.Invoke(weaponSetting.currentMagazine);
 
                 //현재 탄 수를 최대로 설정하고, 바뀐 탄 수 정보를 Text UI에 업데이트
                 weaponSetting.currentAmmo = weaponSetting.maxAmmo;
