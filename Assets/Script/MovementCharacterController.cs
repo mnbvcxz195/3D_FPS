@@ -8,6 +8,12 @@ public class MovementCharacterController : MonoBehaviour
     [SerializeField] private float moveSpeed; //이동속도
     private Vector3 moveForce;                //이동 힘 (x, z와 y축을 별도로 계산해 실제 이동에 적용)
 
+    public float MoveSpeed
+    {
+        set => moveSpeed = Mathf.Max(0, value);
+        get => moveSpeed;
+    }
+
     private CharacterController characterController;  //플레이어 이동 제어를 위한 컴포넌트
 
     private void Awake()
