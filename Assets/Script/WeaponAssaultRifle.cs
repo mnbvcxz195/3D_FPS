@@ -11,6 +11,8 @@ public class WeaponAssaultRifle : MonoBehaviour
     [Header("Audio Clips")]
     [SerializeField]
     private AudioClip audioClipTakeOutWeapon;  //무기 장착 사운드
+    [SerializeField]
+    private AudioClip audioClipFire;           //공격 사운드
 
     [Header("Weapon Setting")]
     [SerializeField]
@@ -88,6 +90,8 @@ public class WeaponAssaultRifle : MonoBehaviour
             animator.Play("Fire", -1, 0);
             //총구 이펙트 재생
             StartCoroutine("OnMuzzleFlashEffect");
+            //공격 사운드 재생
+            PlaySound(audioClipFire);
         }
     }
 
