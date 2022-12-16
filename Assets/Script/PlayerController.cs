@@ -8,6 +8,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private KeyCode
         keyCodeRun = KeyCode.LeftShift;                //달리기 키
+    [SerializeField]
+    private KeyCode
+        keyCodeJump = KeyCode.Space;                   //점프 키
 
     [Header("Audio Clips")]
     [SerializeField] private AudioClip audioClipWalk;  //걷기 사운드
@@ -36,6 +39,7 @@ public class PlayerController : MonoBehaviour
     {
         UpdateRotate();
         UpdateMove();
+        UpdateJump();
     }
 
     private void UpdateRotate()
@@ -86,5 +90,13 @@ public class PlayerController : MonoBehaviour
         }
 
         movement.MoveTo(new Vector3(x, 0, z));
+    }
+
+    private void UpdateJump()
+    {
+        if (Input.GetKeyDown(keyCodeJump))
+        {
+            movement.Jump();
+        }
     }
 }

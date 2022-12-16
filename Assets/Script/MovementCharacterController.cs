@@ -8,6 +8,9 @@ public class MovementCharacterController : MonoBehaviour
     [SerializeField] private float moveSpeed; //이동속도
     private Vector3 moveForce;                //이동 힘 (x, z와 y축을 별도로 계산해 실제 이동에 적용)
 
+    [SerializeField] private float jumpForce; //점프 힘
+    [SerializeField] private float gravity;   //중력 계수
+
     public float MoveSpeed
     {
         set => moveSpeed = Mathf.Max(0, value);
@@ -23,6 +26,11 @@ public class MovementCharacterController : MonoBehaviour
 
     private void Update()
     {
+        if (!characterController.isGrounded)
+        {
+            moveForce.y += gravity * Time.deltaTime;
+        }
+
         // 1초당 moveForce 속력으로 이동
         characterController.Move(moveForce * Time.deltaTime);
     }
@@ -34,5 +42,14 @@ public class MovementCharacterController : MonoBehaviour
 
         //이동 힘 = 이동 방향 * 속도
         moveForce = new Vector3(direction.x * moveSpeed, moveForce.y, direction.z * moveSpeed);
+    }
+
+    public void Jump()
+    {
+        //플레이어가 바닥에 있을 때만 점프 가능
+        if (characterController.isGrounded)
+        {
+            moveForce.y = jumpForce;
+        }
     }
 }
