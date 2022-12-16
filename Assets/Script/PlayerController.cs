@@ -7,11 +7,17 @@ public class PlayerController : MonoBehaviour
     [Header("Input KeyCode")]
     [SerializeField]
     private KeyCode
-        keyCodeRun = KeyCode.LeftShift;           //달리기 키
+        keyCodeRun = KeyCode.LeftShift;                //달리기 키
 
-    private RotateToMouse rotateToMouse;          //마우스 이동으로 카메라 회전
-    private MovementCharacterController movement; // 키보드 입력으로 플레이어 이동, 점프
-    private Status status;                        //이동속도 등의 플레이어 정보
+    [Header("Audio Clips")]
+    [SerializeField] private AudioClip audioClipWalk;  //걷기 사운드
+    [SerializeField] private AudioClip audioClipRun;   //달리기 사운드
+
+    private RotateToMouse rotateToMouse;               //마우스 이동으로 카메라 회전
+    private MovementCharacterController movement;      //키보드 입력으로 플레이어 이동, 점프
+    private Status status;                             //이동속도 등의 플레이어 정보
+    private PlayerAnimatorController animator;         //애니메이션 재생 제어
+    private AudioSource audioSource;                   //사운드 재생 제어
 
     private void Awake()
     {
@@ -22,6 +28,8 @@ public class PlayerController : MonoBehaviour
         rotateToMouse = GetComponent<RotateToMouse>();
         movement = GetComponent<MovementCharacterController>();
         status = GetComponent<Status>();
+        animator = GetComponent<PlayerAnimatorController>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -53,6 +61,28 @@ public class PlayerController : MonoBehaviour
                 isRun = Input.GetKey(keyCodeRun);
 
             movement.MoveSpeed = isRun == true ? status.RunSpeed : status.WalkSpeed;
+            animator.MoveSpeed = isRun == true ? 1 : 0.5f;
+            audioSource.clip = isRun == true ? audioClipRun : audioClipWalk;
+
+            //방향키 입력 여부는 매 프레임 확인하기 때문에
+            //재생중일 때는 다시 재생하지 않도록 isPlaying으로 체크해서 재생
+            if(audioSource.isPlaying == false)
+            {
+                audioSource.loop = true;
+                audioSource.Play();
+            }
+        }
+        //제자리에 멈춰있을 때
+        else
+        {
+            movement.MoveSpeed = 0;
+            animator.MoveSpeed = 0;
+
+            //멈췄을 때 사운드가 재생중이면 정지
+            if(audioSource.isPlaying == true)
+            {
+                audioSource.Stop();
+            }
         }
 
         movement.MoveTo(new Vector3(x, 0, z));
