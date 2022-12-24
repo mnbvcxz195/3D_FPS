@@ -17,7 +17,7 @@ public class EnemyMemoryPool : MonoBehaviour
     private MemoryPool enemyMemoryPool;                      //적 생성, 활성/비활성 관리
 
     private int numberOfEnemiesSpawnedAtOnce = 1;            //동시에 생성되는 적의 숫자
-    private Vector2Int mapSize = new Vector2Int(100, 100);   //맵 크기
+    private Vector2Int mapSize = new Vector2Int(200, 200);   //맵 크기
 
     private void Awake()
     {
