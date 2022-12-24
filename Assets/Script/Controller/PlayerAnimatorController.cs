@@ -24,6 +24,13 @@ public class PlayerAnimatorController : MonoBehaviour
         animator.SetTrigger("onReload");
     }
 
+    //Aussault Rifle 마우스 오른쪽 클릭 액션 (default/aim mode)
+    public bool AimModeIs
+    {
+        set => animator.SetBool("isAimMode", value);
+        get => animator.GetBool("isAimMode");
+    }
+
     public void Play(string stateName, int layer, float normalizedTime)
     {
         animator.Play(stateName, layer, normalizedTime);

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
 
 [System.Serializable]
@@ -38,8 +39,16 @@ public class WeaponAssaultRifle : MonoBehaviour
     [SerializeField]
     private WeaponSetting weaponSetting;       //무기 설정
 
+    [Header("Aim UI")]
+    [SerializeField]
+    private Image imageAim;                    //default/aim 모드에 따라 Aim 이미지 활성/ 비활성
+
     private float lastAttackTime = 0;          //마지막 발사시간 체크
-    private bool isReload = false;               //재장전 중인지 체크
+    private bool isReload = false;             //재장전 중인지 체크
+    private bool isAttack = false;             //공격 여부 체크용
+    private bool isModeChange = false;         //모드 전환 여부 체크용
+    private float defaultModeFOV = 60;         //기본 모드에서의 카메라 FOV
+    private float aimModeFOV = 30;             //Aim모드에서의 카메라 FOV
 
     private AudioSource audioSource;           //사운드 재생 컴포넌트
     private PlayerAnimatorController animator; //애니메이션 재생 제어
@@ -78,6 +87,8 @@ public class WeaponAssaultRifle : MonoBehaviour
         onMagazineEvent.Invoke(weaponSetting.currentMagazine);
         //무기가 활성화될 때 해당 무기의 탄 수 정보를 갱신한다.
         onAmmoEvent.Invoke(weaponSetting.currentAmmo, weaponSetting.maxAmmo);
+
+        ResetVariables();
     }
 
     public void StartWeaponAction(int type = 0)
@@ -86,12 +97,17 @@ public class WeaponAssaultRifle : MonoBehaviour
         if (isReload == true)
             return;
 
+        //모드 전환중이면 무기 액션 불가
+        if (isModeChange == true)
+            return;
+
         //마우스 왼쪽 클릭(공격 시작)
         if(type == 0)
         {
             //연속 공격
             if(weaponSetting.isAutomaticAttack == true)
             {
+                isAttack = true;
                 StartCoroutine("OnAttackLoop");
             }
             //단발 공격
@@ -100,6 +116,15 @@ public class WeaponAssaultRifle : MonoBehaviour
                 OnAttack();
             }
         }
+        //마우스 오른쪽 클릭 (모드 전환)
+        else
+        {
+            //공격 중일 때는 모드 전환 불가
+            if (isAttack == true)
+                return;
+
+            StartCoroutine("OnModeChange");
+        }
     }
 
     public void StopWeaponAction(int type = 0)
@@ -107,6 +132,7 @@ public class WeaponAssaultRifle : MonoBehaviour
         //마우스 왼쪽 클릭(공격 종료)
         if(type == 0)
         {
+            isAttack = false;
             StopCoroutine("OnAttackLoop");
         }
     }
@@ -154,10 +180,12 @@ public class WeaponAssaultRifle : MonoBehaviour
             weaponSetting.currentAmmo --;
             onAmmoEvent.Invoke(weaponSetting.currentAmmo, weaponSetting.maxAmmo);
 
-            //무기 애니메이션 재생
-            animator.Play("Fire", -1, 0);
-            //총구 이펙트 재생
-            StartCoroutine("OnMuzzleFlashEffect");
+            //무기 애니메이션 재생(모드에 따라 AimFire or Fire 애니메이션 재생)
+            //animator.Play("Fire", -1, 0);
+            string animation = animator.AimModeIs == true ? "AimFire" : "Fire";
+            animator.Play(animation, -1, 0);
+            //총구 이펙트 재생 (default mode 일 때만 재생)
+            if(animator.AimModeIs == false) StartCoroutine("OnMuzzleFlashEffect");
             //공격 사운드 재생
             PlaySound(audioClipFire);
             //탄피 생성
@@ -235,6 +263,41 @@ public class WeaponAssaultRifle : MonoBehaviour
             impactMemoryPool.SpawnImpact(hit);
         }
         Debug.DrawRay(bulletSpawnPoint.position, attackDirection * weaponSetting.attackDistance, Color.blue);
+    }
+
+    private IEnumerator OnModeChange()
+    {
+        float current = 0;
+        float percent = 0;
+        float time = 0.35f;
+
+        animator.AimModeIs = !animator.AimModeIs;
+        imageAim.enabled = !imageAim.enabled;
+
+        float start = mainCamera.fieldOfView;
+        float end = animator.AimModeIs == true ? aimModeFOV : defaultModeFOV;
+
+        isModeChange = true;
+
+        while(percent < 1)
+        {
+            current += Time.deltaTime;
+            percent = current / time;
+
+            //mode에 따라 카메라의 시야각을 변경
+            mainCamera.fieldOfView = Mathf.Lerp(start, end, percent);
+
+            yield return null;
+        }
+
+        isModeChange = false;
+    }
+
+    private void ResetVariables()
+    {
+        isReload = false;
+        isAttack = false;
+        isModeChange = false;
     }
 
     private void PlaySound(AudioClip clip)
