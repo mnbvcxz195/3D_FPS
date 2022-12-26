@@ -9,15 +9,15 @@ public class EnemyMemoryPool : MonoBehaviour
     [SerializeField]
     private GameObject enemyPrefab;                          //생성되는 적 프리펩
     [SerializeField]
-    private float enemySpawnTime = 1;                        //적 생성 주기
+    private float enemySpawnTime = 5;                        //적 생성 주기
     [SerializeField]
-    private float enemySpawnLatency = 1;                     //타일 생성 ㅎ후 적이 등장하기까지 대기 시간
+    private float enemySpawnLatency = 1;                     //타일 생성 후 적이 등장하기까지 대기 시간
 
     private MemoryPool spawnPointMemoryPool;                 //적 등장 위치를 알려주는 오브젝트 생성, 활성/비활성 관리
     private MemoryPool enemyMemoryPool;                      //적 생성, 활성/비활성 관리
 
     private int numberOfEnemiesSpawnedAtOnce = 1;            //동시에 생성되는 적의 숫자
-    private Vector2Int mapSize = new Vector2Int(200, 200);   //맵 크기
+    private Vector2Int mapSize = new Vector2Int(1500, 1500);   //맵 크기
 
     private void Awake()
     {
@@ -30,7 +30,7 @@ public class EnemyMemoryPool : MonoBehaviour
     private IEnumerator SpawnTile()
     {
         int currentNumber = 0;
-        int maximumNumber = 50;
+        int maximumNumber = 30;
 
         while (true)
         {
@@ -39,7 +39,7 @@ public class EnemyMemoryPool : MonoBehaviour
             {
                 GameObject item = spawnPointMemoryPool.ActivatePoolItem();
 
-                item.transform.position = new Vector3(Random.Range(-mapSize.x * 0.49f, mapSize.x * 0.49f), 1,
+                item.transform.position = new Vector3(Random.Range(-mapSize.x * 0.49f, mapSize.x * 0.49f), 30,
                                                       Random.Range(-mapSize.y * 0.49f, mapSize.y * 0.49f));
 
                 StartCoroutine("SpawnEnemy", item);

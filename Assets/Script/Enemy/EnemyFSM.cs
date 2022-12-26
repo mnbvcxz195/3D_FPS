@@ -83,8 +83,8 @@ public class EnemyFSM : MonoBehaviour
         navMeshAgent.SetDestination(CalculateWanderPosition());
 
         //목표 위치로 회전
-        Vector3 to = new Vector3(navMeshAgent.destination.x, 0, navMeshAgent.destination.z);
-        Vector3 from = new Vector3(transform.position.x, 0, transform.position.z);
+        Vector3 to = new Vector3(navMeshAgent.destination.x, 30, navMeshAgent.destination.z);
+        Vector3 from = new Vector3(transform.position.x, 30, transform.position.z);
         transform.rotation = Quaternion.LookRotation(to - from);
 
         while (true)
@@ -92,8 +92,8 @@ public class EnemyFSM : MonoBehaviour
             currentTime += Time.deltaTime;
 
             //목표위치에 근접하게 도달하거나 너무 오랜시간동안 배회하기 상태에 머물러 있으면
-            to = new Vector3(navMeshAgent.destination.x, 0, navMeshAgent.destination.z);
-            from = new Vector3(transform.position.x, 0, transform.position.z);
+            to = new Vector3(navMeshAgent.destination.x, 30, navMeshAgent.destination.z);
+            from = new Vector3(transform.position.x, 30, transform.position.z);
             if((to - from).sqrMagnitude < 0.01f || currentTime >= maxTime)
             {
                 //상태를 "대기"로 변경
@@ -113,7 +113,7 @@ public class EnemyFSM : MonoBehaviour
 
         //현재 적 캐릭터가 있는 월드의 중심 위치와 크기 (구역을 벗어난 행동을 하지 않도록)
         Vector3 rangePosition = Vector3.zero;
-        Vector3 rangeScale = Vector3.one * 200.0f;
+        Vector3 rangeScale = Vector3.one * 1500.0f;
 
         //자신의 위치를 중심으로 반지름(wanderRadius) 거리, 선택된 각도(wanderJitter)에 위치한 좌표를 목표지점으로 설정
         wanderJitter = Random.Range(wanderJitterMin, wanderJitterMax);
@@ -121,7 +121,7 @@ public class EnemyFSM : MonoBehaviour
 
         //생성된 목표 위치가 자신의 이동구역을 벗어나지 않게 조절
         targetPosition.x = Mathf.Clamp(targetPosition.x, rangePosition.x - rangeScale.x * 0.5f, rangePosition.x + rangeScale.x * 0.5f);
-        targetPosition.y = 0.0f;
+        targetPosition.y = 30.0f;
         targetPosition.z = Mathf.Clamp(targetPosition.z, rangePosition.z - rangeScale.z * 0.5f, rangePosition.z + rangeScale.z * 0.5f);
 
         return targetPosition;
