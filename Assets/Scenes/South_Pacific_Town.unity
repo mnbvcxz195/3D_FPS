@@ -65827,9 +65827,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c11f347688f85b43bee96482a5ffe82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  target: {fileID: 1740039477}
   enemySpawnPointPrefab: {fileID: 3908152694306361933, guid: 4099d24c111a8114bb2837cf4307f977, type: 3}
   enemyPrefab: {fileID: 1281825533482103829, guid: d3560485299b7a24cbd75b72221f4f1b, type: 3}
-  enemySpawnTime: 1
+  enemySpawnTime: 5
   enemySpawnLatency: 1
 --- !u!4 &2041009414
 Transform:
