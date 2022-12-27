@@ -3,18 +3,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public enum EnemyState { None = -1, Idle = 0, Wander, }
+public enum EnemyState { None = -1, Idle = 0, Wander, Pursuit,}
 
 public class EnemyFSM : MonoBehaviour
 {
+    [Header("Pursuit")]
+    [SerializeField]
+    private float targetRecognitionRange = 8;                 //인식 범위 (이 범위 안에 들어오면 "Pursuit" 상태로 변경)
+    [SerializeField]
+    private float pursuitLimitRange = 10;                     //추적 범위 (이 범위 바깥으로 나가면 "Wander" 상태로 변경)
+
     private EnemyState enemyState = EnemyState.None;          //현재 적 행동
+
     private Status status;                                    //이동 속도 등의 정보
     private NavMeshAgent navMeshAgent;                        //이동 제어를 위한 NavMeshAgent
+    private Transform target;                                 //적의 공격 대상 (플레이어)
 
-    private void Awake()
+    //private void Awake()
+    public void Setup(Transform target)
     {
         status = GetComponent<Status>();
         navMeshAgent = GetComponent<NavMeshAgent>();
+        this.target = target;
 
         //NavMeshAgent 컴포넌트에서 회전을 업데이트하지 않도록 설정
         navMeshAgent.updateRotation = false;
@@ -55,6 +65,8 @@ public class EnemyFSM : MonoBehaviour
         while (true)
         {
             //"대기" 상태일 때 하는 행동
+            //타겟과의 거리에 따라 행동 선택 (배회, 추격, 원거리 공격)
+            CalculateDistanceToTargetAndSelectState();
 
             yield return null;
         }
@@ -83,8 +95,10 @@ public class EnemyFSM : MonoBehaviour
         navMeshAgent.SetDestination(CalculateWanderPosition());
 
         //목표 위치로 회전
-        Vector3 to = new Vector3(navMeshAgent.destination.x, 30, navMeshAgent.destination.z);
-        Vector3 from = new Vector3(transform.position.x, 30, transform.position.z);
+        //Vector3 to = new Vector3(navMeshAgent.destination.x, navMeshAgent.destination.y, navMeshAgent.destination.z);
+        //Vector3 from = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+        Vector3 to = new Vector3(navMeshAgent.destination.x, 0, navMeshAgent.destination.z);
+        Vector3 from = new Vector3(transform.position.x, 0, transform.position.z);
         transform.rotation = Quaternion.LookRotation(to - from);
 
         while (true)
@@ -92,13 +106,18 @@ public class EnemyFSM : MonoBehaviour
             currentTime += Time.deltaTime;
 
             //목표위치에 근접하게 도달하거나 너무 오랜시간동안 배회하기 상태에 머물러 있으면
-            to = new Vector3(navMeshAgent.destination.x, 30, navMeshAgent.destination.z);
-            from = new Vector3(transform.position.x, 30, transform.position.z);
-            if((to - from).sqrMagnitude < 0.01f || currentTime >= maxTime)
+            //to = new Vector3(navMeshAgent.destination.x, navMeshAgent.destination.y, navMeshAgent.destination.z);
+            //from = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+            to = new Vector3(navMeshAgent.destination.x, 0, navMeshAgent.destination.z);
+            from = new Vector3(transform.position.x, 0, transform.position.z);
+            if ((to - from).sqrMagnitude < 0.01f || currentTime >= maxTime)
             {
                 //상태를 "대기"로 변경
                 ChangeState(EnemyState.Idle);
             }
+
+            //타겟과의 거리에 따라 행동 선택 (배회, 추격, 원거리 공격)
+            CalculateDistanceToTargetAndSelectState();
 
             yield return null;
         }
@@ -137,10 +156,71 @@ public class EnemyFSM : MonoBehaviour
         return position;
     }
 
+    private IEnumerator Pursuit()
+    {
+        while (true)
+        {
+            //이동 속도 설정 (배회할 때는 걷는 속도로 이동, 추적할 때는 뛰는 속도로 이동)
+            navMeshAgent.speed = status.RunSpeed;
+
+            //목표위치를 현재 플레이어의 위치로 설정
+            navMeshAgent.SetDestination(target.position);
+
+            //타겟 방향을 계속 주시하도록 함
+            LookRotationToTarget();
+
+            //타겟과의 거리에 따라 행동 선택 (배회, 추격, 원거리 공격)
+            CalculateDistanceToTargetAndSelectState();
+
+            yield return null;
+        }
+    }
+
+    private void LookRotationToTarget()
+    {
+        //목표 위치
+        Vector3 to = new Vector3(target.position.x, 0, target.position.z);
+
+        //내 위치
+        Vector3 from = new Vector3(transform.position.x, 0, transform.position.z);
+
+        //바로 돌기
+        transform.rotation = Quaternion.LookRotation(to - from);
+
+        //서서히 돌기
+        //Quaternion rotation = Quaternion.LookRotation(to - from);
+        //transform.rotation = Quaternion.Slerp(transform.rotation, rotation, 0.01f);
+    }
+
+    private void CalculateDistanceToTargetAndSelectState()
+    {
+        if (target == null) return;
+
+        //플레이어(Target)와 적의 거리 계산 후 거리에 따라 행동 선택
+        float distance = Vector3.Distance(target.position, transform.position);
+
+        if(distance <= targetRecognitionRange)
+        {
+            ChangeState(EnemyState.Pursuit);
+        }
+        else if(distance >= pursuitLimitRange)
+        {
+            ChangeState(EnemyState.Wander);
+        }
+    }
+
     private void OnDrawGizmos()
     {
         //"배회" 상태일 때 이동한 경로 표시
         Gizmos.color = Color.black;
         Gizmos.DrawRay(transform.position, navMeshAgent.destination - transform.position);
+
+        //목표 인식 범위
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, targetRecognitionRange);
+
+        //추적 범위
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, pursuitLimitRange);
     }
 }
